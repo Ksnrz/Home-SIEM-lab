@@ -1,0 +1,18 @@
+<!--
+  Added inside <ossec_config> in the Wazuh agent's ossec.conf on win11-lab:
+  C:\Program Files (x86)\ossec-agent\ossec.conf
+  The default agent config already reads the Security, System and Application channels.
+  Restart the agent afterwards:  Restart-Service WazuhSvc
+-->
+
+<!-- Sysmon: process creation (Event 1) and the rest of the Sysmon events -->
+<localfile>
+  <location>Microsoft-Windows-Sysmon/Operational</location>
+  <log_format>eventchannel</log_format>
+</localfile>
+
+<!-- PowerShell Script Block Logging (Event 4104) -->
+<localfile>
+  <location>Microsoft-Windows-PowerShell/Operational</location>
+  <log_format>eventchannel</log_format>
+</localfile>

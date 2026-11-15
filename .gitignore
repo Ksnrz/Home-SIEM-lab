@@ -1,0 +1,4 @@
+# Raw Windows event logs contain machine names, SIDs and unrelated activity.
+# They stay on the analyst's machine; screenshots and tables go in the repo.
+*.evtx
+*.evtx.zip

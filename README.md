@@ -87,7 +87,7 @@ the alert threshold.
 
 | Machine | Role | IP |
 |---|---|---|
-| Ubuntu `<version>` | Wazuh `<version>` all-in-one | 192.168.95.130 |
+| Ubuntu 24.04 LTS | Wazuh 4.14.1 all-in-one | 192.168.95.130 |
 | Windows 11 (`win-lab`) | Target with Sysmon and the Wazuh agent | 192.168.95.131 |
 | Kali Linux | Attacker for brute force | 192.168.95.132 |
 

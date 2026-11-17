@@ -5,43 +5,30 @@ custom rules.
 
 ## Overview
 
-Many small teams run a SIEM with its default rules and assume common attacks will raise an alert.
-This lab checks that assumption. I attacked a Windows 11 VM with three MITRE ATT&CK techniques,
-sent its logs to Wazuh, and recorded which attacks the default ruleset alerted on, which ones it
-only logged, and why. Where a real gap showed up, I wrote and tested a custom rule to close it.
+Many small teams rely on a SIEM's default rules. This lab tests how far those rules get: I ran
+three MITRE ATT&CK techniques against a Windows 11 VM with Atomic Red Team and NetExec, sent the
+logs to Wazuh 4.14.1, and recorded which attacks raised an alert at level 7 or higher. Where a real
+gap showed up, I wrote and tested a custom rule. See [Lab setup](#lab-setup) for the VMs.
 
-**Setup.** Three VMs on an isolated VMware network: Wazuh 4.14.1 (all-in-one) on Ubuntu, a
-Windows 11 target with Sysmon and the Wazuh agent, and Kali Linux as the attacker. Details are in
-[Lab setup](#lab-setup).
+**Results (v1, Nov 16, 2026)**
 
-**Method.** Each technique was run with Atomic Red Team on the Windows VM, or with NetExec from
-Kali for the brute force. For every run I noted the start and end time, the Windows events it
-produced, and the Wazuh rule and level that fired. A technique counts as detected when an alert
-reaches level 7 or higher, the point where it would normally reach an analyst.
+- **PowerShell encoded command (T1059.001):** detected, rule 92057 at level 12.
+- **Scheduled task (T1053.005):** level 4 only. Two custom rules now raise it to 8, or 12 when the
+  task runs as SYSTEM.
+- **Brute force over SMB (T1110):** no alert. The 5 attempts stayed under the default threshold
+  of 8.
 
-**Results (v1, completed Nov 16, 2026).**
-
-- **PowerShell encoded command (T1059.001):** detected. Rule 92057 fired at level 12 from the
-  process tree alone.
-- **Scheduled task (T1053.005):** logged at level 4 only, even for a task that runs as SYSTEM at
-  every boot. Two custom rules now raise it to level 8, and to level 12 when the task runs as
-  SYSTEM.
-- **Brute force over SMB (T1110):** each failed logon was logged at level 5. The 5 attempts stayed
-  under the default correlation threshold of 8, so no brute-force alert fired.
-
-**Next (v2).** Active response that blocks the brute-force source IP, file integrity monitoring
-with VirusTotal enrichment, 2 to 3 Sigma rules tested against the lab logs, and an incident report
-for the brute-force case.
+**Next (v2):** active response, file integrity monitoring with VirusTotal, Sigma rules and an
+incident report.
 
 <p>
   <img src="docs/sysmon-1.png" width="49%" alt="Sysmon Event 1 showing a base64-encoded PowerShell command">
   <img src="docs/rule-92057.png" width="49%" alt="Wazuh rule 92057 at level 12 for the encoded PowerShell command">
 </p>
 
-An encoded PowerShell command as Wazuh sees it. Sysmon Event 1 (left) records only the base64
-command line, and rule 92057 (right) raises a level-12 alert from that process tree alone. The
-decoded script was also logged by Windows (Event 4104) but raised no alert, so it never appeared
-in Wazuh.
+An encoded PowerShell command as Wazuh sees it: Sysmon Event 1 (left) logs only the base64 command
+line, and rule 92057 (right) alerts at level 12. The decoded script (Event 4104) raised no alert
+and never appeared in Wazuh.
 
 ## Skills demonstrated
 

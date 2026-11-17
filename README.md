@@ -1,22 +1,22 @@
 # Home SIEM Lab
 
-Testing what a default Wazuh install detects on Windows.
+A home lab that tests what a default Wazuh install detects on Windows, then closes the gaps with
+custom rules.
+
+- **What I did:** ran 3 MITRE ATT&CK techniques against a Windows 11 VM, sent its Sysmon and
+  Windows logs to Wazuh, and recorded whether the default ruleset raised an alert for each one.
+- **Result:** 1 of 3 detected by default. Two custom rules now catch the scheduled task
+  persistence at level 8 and 12.
+- **Status:** v1 done on Nov 16, 2026. v2 in progress: active response, file integrity
+  monitoring with VirusTotal, Sigma rules and an incident report.
 
 <p>
   <img src="docs/sysmon-1.png" width="49%" alt="Sysmon Event 1 showing a base64-encoded PowerShell command">
   <img src="docs/rule-92057.png" width="49%" alt="Wazuh rule 92057 at level 12 for the encoded PowerShell command">
 </p>
 
-An encoded PowerShell command as Wazuh sees it. Sysmon Event 1 (left) records only the base64
-command line, and rule 92057 (right) raises a level-12 alert from that process tree alone.
-The decoded script was also logged by Windows (Event 4104), but no rule matched it, so it never
-reached the Wazuh index.
-
-This lab runs MITRE ATT&CK techniques against a Windows 11 VM and records which ones the default
-Wazuh ruleset detects, which ones it logs without alerting, and which ones it misses.
-
-v1 (3 techniques) completed on Nov 16, 2026. v2 adds a custom rule for the scheduled task gap,
-active response, file integrity monitoring with VirusTotal, Sigma rules and an incident report.
+Example: an encoded PowerShell command. Sysmon Event 1 (left) logs the base64 command line, and
+Wazuh rule 92057 (right) raises a level-12 alert.
 
 ## Skills demonstrated
 

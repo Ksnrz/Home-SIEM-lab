@@ -61,17 +61,28 @@ Each rule was tested by re-running the same attack, and against a benign task
 
 ## Things I learned along the way
 
-- **Threat Hunting shows alerts, not raw logs.** Events below level 3 never reach the index, so an
-  empty search does not mean the agent missed the event.
-- **Script Block Logging needs both sides.** Windows writes 4104 only after the policy is enabled,
-  and Wazuh reads it only after the channel is added to `ossec.conf`.
-- **Most 4104 events in a test are Atomic Red Team itself.** Filter by the `path` field to separate
-  the framework from the payload.
-- **Default ATT&CK tags need checking.** Rule 60122 (failed logon) is tagged T1531, not T1110.
-- **Check how a field is stored before writing a rule.** Event 4698 keeps the task XML escaped
-  (`&lt;Command&gt;`), so a pattern on `<Command>` would fail silently.
+Each point comes from a specific result in this lab.
 
-Details for each are in the [write-ups](docs/techniques/).
+- **An empty search is not a missed event.** In T1059.001, searching Threat Hunting for the decoded
+  script returned nothing, but the exported PowerShell log on win-lab had it (Event 4104). Threat
+  Hunting shows alerts at level 3 or above, not raw logs.
+  [T1059.001 analysis](docs/techniques/t1059-001-powershell-encoded.md#analysis)
+- **Script Block Logging needs both sides.** Event 4104 reached Wazuh only after the policy was
+  enabled on win-lab ([`enable-logging.ps1`](config/enable-logging.ps1)) and the channel was added
+  to the agent ([`agent-localfile.xml`](config/agent-localfile.xml)).
+- **Atomic Red Team makes its own alerts.** Rule 91822 fired at level 12 on the framework's wrapper
+  script `Invoke-ExecuteCommand.ps1`, not on the technique. The `path` field separates the two.
+  [T1059.001 analysis](docs/techniques/t1059-001-powershell-encoded.md#analysis)
+- **"No alert" can mean "below the threshold".** The 5-attempt brute force stayed under rule 60204,
+  which needs 8 failures from one IP in 240 seconds. Check the ruleset before calling something a
+  gap. [T1110](docs/techniques/t1110-brute-force.md#why-no-correlated-alert-fired)
+- **Default ATT&CK tags need checking.** Rule 60122, which fired on every failed logon in the
+  brute-force test, is tagged T1531 instead of T1110.
+  [T1110 analysis](docs/techniques/t1110-brute-force.md#analysis)
+- **Check how a field is stored before writing a rule.** Event 4698 stores the task XML escaped
+  (`&lt;Command&gt;`), so the custom T1053.005 rules match `Command.gt;`. A pattern on `<Command>`
+  would never match and would fail silently.
+  [T1053.005 rule design](docs/techniques/t1053-005-scheduled-task.md#design)
 
 ## Lab setup
 

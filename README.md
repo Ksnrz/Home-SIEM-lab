@@ -1,14 +1,14 @@
 # Home SIEM Lab
 
-A home lab that tests what a default Wazuh install detects on Windows, then closes the gaps with
-custom rules.
+A home lab that tests what a default Wazuh install detects on Windows.
 
 ## Overview
 
 Many small teams rely on a SIEM's default rules. This lab tests how far those rules get: I ran
 three MITRE ATT&CK techniques against a Windows 11 VM with Atomic Red Team and NetExec, sent the
-logs to Wazuh 4.14.1, and recorded which attacks raised an alert at level 7 or higher. Where a real
-gap showed up, I wrote and tested a custom rule. See [Lab setup](#lab-setup) for the VMs.
+logs to Wazuh 4.14.1, and recorded which attacks raised an alert at level 7 or higher. For the
+clearest gap, a scheduled task running as SYSTEM that only reached level 4, I also wrote and tested
+a custom rule. See [Lab setup](#lab-setup) for the VMs.
 
 **Results (v1, Nov 16, 2026)**
 

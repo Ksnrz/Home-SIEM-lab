@@ -56,7 +56,51 @@ Event 4698 is only written after enabling the `Other Object Access Events` audit
   method, gets the same level as a user creating a reminder.
 - Wazuh maps 60228 to T1053 correctly.
 
-## Detection gap for v2
+## Custom rule (v2)
 
-A custom rule on 4698 where the task runs as SYSTEM (or `/ru system` appears in the Sysmon
-command line), at level 10 or higher.
+**Result: detected** after adding two custom rules: [rules/wazuh/t1053-005-scheduled-task.xml](../../rules/wazuh/t1053-005-scheduled-task.xml).
+
+### Design
+
+Running as SYSTEM alone is not a useful signal: Windows' own tasks do it. A 4698 alert on win-lab
+the same day was `\Microsoft\Windows\Defrag\ScheduledDefrag`, which runs
+`%windir%\system32\defrag.exe` as SYSTEM with `HighestAvailable`. What separates the Atomic tasks is
+**what they run** (a command interpreter) and **when they start** (logon or boot).
+
+| Rule | Level | Builds on | Condition |
+|---|---|---|---|
+| 100010 | 8 | 60228 | Task command is `cmd.exe` or `powershell.exe`, and the trigger is logon or boot |
+| 100011 | 12 | 100010 | Same, and the task runs as SYSTEM (`S-1-5-18`) |
+
+Event 4698 stores the task XML escaped inside `win.eventdata.taskContent`
+(`&lt;Command&gt;cmd.exe`), so the patterns match `Command.gt;` rather than `<Command>`.
+A pattern written against the unescaped XML would never match and would fail silently.
+
+![taskContent stored as escaped XML](../screenshots/t1053-005-custom-rule/1-taskcontent-escaped-xml.png)
+
+### Test
+
+Rules loaded with a manager restart, then the same Atomic test was run again on 2026-11-18 at
+01:16 (UTC+7).
+
+![Manager restarted with the new rules](../screenshots/t1053-005-custom-rule/2-manager-restarted.png)
+
+| Task | Before (2026-11-16) | After (2026-11-18) |
+|---|---|---|
+| `\T1053_005_OnLogon` (labuser) | 60228 / 4 | **100010 / 8** |
+| `\T1053_005_OnStartup` (SYSTEM) | 60228 / 4 | **100011 / 12** |
+
+![Same tasks before and after the custom rules](../screenshots/t1053-005-custom-rule/3-before-after-rules-100010-100011.png)
+
+Negative test: a logon-triggered task that runs `notepad.exe` directly
+(`schtasks /create /tn "TestNotepad" /sc onlogon /tr "notepad.exe"`) stayed at 60228 / 4.
+
+![Benign logon task not flagged](../screenshots/t1053-005-custom-rule/4-negative-test-testnotepad.png)
+
+### Limits
+
+- **Renamed interpreter.** A task that runs a copy of `powershell.exe` under another name, or runs
+  the payload directly without cmd or PowerShell, does not match. 4698 only records the command
+  text; Sysmon 1 (`OriginalFileName`) at execution time is the place to catch that.
+- **False positives not measured.** The lab has few legitimate tasks, so level 8 and 12 are
+  starting points, not tuned values.

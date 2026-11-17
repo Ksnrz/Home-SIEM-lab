@@ -106,7 +106,7 @@ Changes from the default configuration:
 - [x] T1053.005 Scheduled task
 - [x] T1110 Brute force from Kali
 - [ ] T1136.001 Local account creation and T1070.001 Event log clearing
-- [ ] Custom Wazuh rule for a detection gap, with before/after testing
+- [x] Custom Wazuh rule for a detection gap, with before/after testing ([T1053.005](docs/techniques/t1053-005-scheduled-task.md#custom-rule-v2))
 - [ ] 2 to 3 Sigma rules tested against lab logs
 - [ ] Incident report
 

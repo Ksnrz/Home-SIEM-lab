@@ -1,0 +1,32 @@
+<!--
+  Custom rules for T1053.005 (scheduled task persistence).
+  Add to /var/ossec/etc/rules/local_rules.xml on the Wazuh manager, then restart wazuh-manager.
+
+  Event 4698 stores the task definition as escaped XML in win.eventdata.taskContent
+  (&lt;Command&gt; instead of <Command>), so the patterns use "." in place of "&".
+  Tested on Wazuh 4.14.1, 2026-11-18.
+-->
+<group name="local,windows,">
+
+  <!-- Tier 1: new task that runs cmd/powershell at logon or boot -->
+  <rule id="100010" level="8">
+    <if_sid>60228</if_sid>
+    <field name="win.eventdata.taskContent" type="pcre2">(?i)Command.gt;\S*(cmd|powershell)\.exe</field>
+    <field name="win.eventdata.taskContent" type="pcre2">(?i)(LogonTrigger|BootTrigger)</field>
+    <description>Scheduled task created: runs cmd/powershell at logon or boot (possible persistence)</description>
+    <mitre>
+      <id>T1053.005</id>
+    </mitre>
+  </rule>
+
+  <!-- Tier 2: same as tier 1, and the task runs as SYSTEM -->
+  <rule id="100011" level="12">
+    <if_sid>100010</if_sid>
+    <field name="win.eventdata.taskContent" type="pcre2">(?i)UserId.gt;(S-1-5-18|SYSTEM)</field>
+    <description>Scheduled task created to run as SYSTEM via cmd/powershell at logon or boot (high-risk persistence)</description>
+    <mitre>
+      <id>T1053.005</id>
+    </mitre>
+  </rule>
+
+</group>

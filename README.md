@@ -60,39 +60,17 @@ Each rule was tested by re-running the same attack, and against a benign task
 
 ## Things I learned along the way
 
-**Encoded PowerShell is detected from the process tree, not the payload.**
-Sysmon sees only base64, but rule 92057 (level 12) fires because PowerShell launched a child
-PowerShell process with `-e`. Wazuh also mapped the alert to T1059.001 automatically.
-A related rule for cmd execution (92032) fired at level 3.
+- **Threat Hunting shows alerts, not raw logs.** Events below level 3 never reach the index, so an
+  empty search does not mean the agent missed the event.
+- **Script Block Logging needs both sides.** Windows writes 4104 only after the policy is enabled,
+  and Wazuh reads it only after the channel is added to `ossec.conf`.
+- **Most 4104 events in a test are Atomic Red Team itself.** Filter by the `path` field to separate
+  the framework from the payload.
+- **Default ATT&CK tags need checking.** Rule 60122 (failed logon) is tagged T1531, not T1110.
+- **Check how a field is stored before writing a rule.** Event 4698 keeps the task XML escaped
+  (`&lt;Command&gt;`), so a pattern on `<Command>` would fail silently.
 
-**Script Block Logging needs a change on both sides.**
-Enabling the policy makes Windows write Event 4104, but the Wazuh agent does not read the
-`Microsoft-Windows-PowerShell/Operational` channel until it is added to `ossec.conf`.
-
-**Threat Hunting shows alerts, not raw logs.**
-Events that match no rule, or match one below level 3, are not stored in the alerts index.
-An empty search result does not mean the agent failed to collect the event.
-The decoded payload of the encoded command is an example: it is in the exported
-`PowerShell/Operational` log (Event 4104) but not in Wazuh.
-
-**Most 4104 events during a test come from the test framework.**
-Atomic Red Team is itself a PowerShell module, so 4104 records its internal functions
-(for example `Invoke-ExecuteCommand.ps1`) alongside the actual attack. Interactive console use
-adds more noise, such as `prompt` and `$Host` blocks. Filtering by the `path` field separates
-framework code from the payload. Rule 91822 even fired at level 12 on the framework's own code.
-
-**Persistence as SYSTEM gets the same level as any new task.**
-Creating a boot-time scheduled task that runs as SYSTEM raised rule 60228 at level 4, the same
-as any task creation. Both Event 4698 and Sysmon saw it; neither produced an alert worth reading.
-
-**Each failed logon is an alert; the brute force is not.**
-Five wrong passwords in eight seconds from one IP produced five separate level-5 alerts and no
-correlated alert. The default rule for these failures (60122) is also tagged T1531 Account Access
-Removal instead of T1110, so default ATT&CK tags need checking.
-
-**Tool installation is visible.**
-Installing Atomic Red Team triggered rules 91816 and 91820 at level 4: recorded, but below
-the alert threshold.
+Details for each are in the [write-ups](docs/techniques/).
 
 ## Lab setup
 

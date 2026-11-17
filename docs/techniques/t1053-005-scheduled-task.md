@@ -78,24 +78,26 @@ A pattern written against the unescaped XML would never match and would fail sil
 
 ![taskContent stored as escaped XML](../screenshots/t1053-005-custom-rule/1-taskcontent-escaped-xml.png)
 
+![Rules in local_rules.xml on the manager](../screenshots/t1053-005-custom-rule/2-local-rules-xml.png)
+
 ### Test
 
 Rules loaded with a manager restart, then the same Atomic test was run again on 2026-11-18 at
 01:16 (UTC+7).
 
-![Manager restarted with the new rules](../screenshots/t1053-005-custom-rule/2-manager-restarted.png)
+![Manager restarted with the new rules](../screenshots/t1053-005-custom-rule/3-manager-restarted.png)
 
 | Task | Before (2026-11-16) | After (2026-11-18) |
 |---|---|---|
 | `\T1053_005_OnLogon` (labuser) | 60228 / 4 | **100010 / 8** |
 | `\T1053_005_OnStartup` (SYSTEM) | 60228 / 4 | **100011 / 12** |
 
-![Same tasks before and after the custom rules](../screenshots/t1053-005-custom-rule/3-before-after-rules-100010-100011.png)
+![Same tasks before and after the custom rules](../screenshots/t1053-005-custom-rule/4-before-after-rules-100010-100011.png)
 
 Negative test: a logon-triggered task that runs `notepad.exe` directly
 (`schtasks /create /tn "TestNotepad" /sc onlogon /tr "notepad.exe"`) stayed at 60228 / 4.
 
-![Benign logon task not flagged](../screenshots/t1053-005-custom-rule/4-negative-test-testnotepad.png)
+![Benign logon task not flagged](../screenshots/t1053-005-custom-rule/5-negative-test-testnotepad.png)
 
 ### Limits
 

@@ -15,17 +15,18 @@ reached the Wazuh index.
 This lab runs MITRE ATT&CK techniques against a Windows 11 VM and records which ones the default
 Wazuh ruleset detects, which ones it logs without alerting, and which ones it misses.
 
-v1 (3 techniques) completed on Nov 16, 2026. v2 adds two techniques, custom rules and Sigma rules.
+v1 (3 techniques) completed on Nov 16, 2026. v2 adds a custom rule for the scheduled task gap,
+active response, file integrity monitoring with VirusTotal, Sigma rules and an incident report.
 
 ## Skills demonstrated
 
 | Skill | Evidence |
 |---|---|
-| SIEM deployment and configuration | Wazuh server, Windows agent, log channel config: [config](config/) |
+| SIEM deployment and configuration | Wazuh server and Windows agent: [Lab setup](#lab-setup), agent log channels: [config](config/) |
 | Windows event logging | Sysmon 1, PowerShell 4104, Security 4625 and 4698 |
 | MITRE ATT&CK mapping | [Detection results](#detection-results) |
 | Adversary emulation | Atomic Red Team and NetExec: [write-ups](docs/techniques/) |
-| Alert triage | Interpreting rule IDs and severity levels |
+| Alert triage | Separating a real alert from framework noise (rule 91822): [T1059.001 analysis](docs/techniques/t1059-001-powershell-encoded.md#analysis) |
 | Log pipeline troubleshooting | [Things I learned](#things-i-learned-along-the-way) |
 | Detection engineering | Custom Wazuh rules with before/after and negative tests: [Custom rules](#custom-rules) |
 | Technical documentation | This README and one write-up per technique |
@@ -38,8 +39,8 @@ Lower levels are stored but would not normally reach an analyst.
 | Technique | ATT&CK | Event ID | Detected by default | Rule ID / level |
 |---|---|---|---|---|
 | PowerShell encoded command | [T1059.001](https://attack.mitre.org/techniques/T1059/001/) | Sysmon 1, 4104 | Yes | 92057 / 12 |
-| Scheduled task | [T1053.005](https://attack.mitre.org/techniques/T1053/005/) | 4698, Sysmon 1 | No (logged only) | 60228 / 4, 92032 / 3 |
-| Brute force (SMB) | [T1110](https://attack.mitre.org/techniques/T1110/) | 4625 | No (logged only) | 60122 / 5 per failure |
+| Scheduled task | [T1053.005](https://attack.mitre.org/techniques/T1053/005/) | 4698, Sysmon 1 | No → Yes with a [custom rule](#custom-rules) | 60228 / 4 → 100010 / 8, 100011 / 12 |
+| Brute force (SMB) | [T1110](https://attack.mitre.org/techniques/T1110/) | 4625 | No: 5 attempts, below the default threshold of 8 ([why](docs/techniques/t1110-brute-force.md#why-no-correlated-alert-fired)) | 60122 / 5 per failure |
 
 Full write-ups with screenshots:
 [T1059.001](docs/techniques/t1059-001-powershell-encoded.md),
@@ -79,7 +80,7 @@ Details for each are in the [write-ups](docs/techniques/).
 | Machine | Role | IP |
 |---|---|---|
 | Ubuntu 24.04 LTS | Wazuh 4.14.1 all-in-one | 192.168.95.130 |
-| Windows 11 (`win-lab`) | Target with Sysmon and the Wazuh agent | 192.168.95.131 |
+| Windows 11 (hostname `win-lab`, VM `win11-lab`) | Target with Sysmon and the Wazuh agent | 192.168.95.131 |
 | Kali Linux | Attacker for brute force | 192.168.95.132 |
 
 All machines run in VMware Workstation on an isolated network.
@@ -96,10 +97,11 @@ Changes from the default configuration:
 - [x] T1059.001 PowerShell encoded command
 - [x] T1053.005 Scheduled task
 - [x] T1110 Brute force from Kali
-- [ ] T1136.001 Local account creation and T1070.001 Event log clearing
 - [x] Custom Wazuh rule for a detection gap, with before/after testing ([T1053.005](docs/techniques/t1053-005-scheduled-task.md#custom-rule-v2))
+- [ ] Active response that blocks the brute-force source IP
+- [ ] File integrity monitoring with VirusTotal enrichment
 - [ ] 2 to 3 Sigma rules tested against lab logs
-- [ ] Incident report
+- [ ] Incident report for the brute-force case
 
 ## Tools
 

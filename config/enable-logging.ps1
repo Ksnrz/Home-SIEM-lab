@@ -1,4 +1,4 @@
-# Logging changes made on win11-lab before running the techniques.
+# Logging changes made on win-lab (VM name win11-lab) before running the techniques.
 # Run in an elevated PowerShell session.
 
 # Event 4625: failed logons (usually on by default; set explicitly to be sure)

@@ -1,6 +1,7 @@
 # T1110 — Brute force over SMB
 
-**Result: not detected** (each failure logged at level 5; no alert for the pattern).
+**Result: not detected** (each failure logged at level 5). Five attempts is below the 8 that the
+default correlation rule 60204 needs, see [Why no correlated alert fired](#why-no-correlated-alert-fired).
 
 ## What was run
 
@@ -45,13 +46,21 @@ attempt reached Windows and was recorded.
 
 - **Every failure is visible, the attack is not.** Five failures in eight seconds from one IP
   produced five separate level-5 alerts. No correlated "multiple failures" alert fired at this
-  volume.
+  volume (see below).
 - **The ATT&CK tag is wrong.** Rule 60122 is mapped to T1531 Account Access Removal, not T1110.
   Default mappings need checking before they are used in reports.
 - **The anonymous logon (92652) is the earliest sign.** It fired before the first wrong password,
   because NetExec opens a null session to fingerprint the host.
 
-## Detection gap for v2
+## Why no correlated alert fired
 
-A frequency rule: five or more 4625 events for the same account from the same source IP within
-60 seconds raises one alert at level 10.
+The default ruleset already has a rule for this pattern. Rule 60204 "Multiple Windows Logon
+Failures" (level 10, tagged T1110) fires after 8 failed logons from the same source IP within
+240 seconds (`0580-win-security_rules.xml`, Wazuh 4.14.1). This test sent 5, so it stayed under
+that threshold. The result means the test was below the default threshold, not that Wazuh cannot
+detect brute force.
+
+## Remaining gap
+
+A slow attack stays under the threshold. One attempt per minute is at most 4 failures in any
+240-second window, so rule 60204 never fires and each failure stays a separate level-5 alert.

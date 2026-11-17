@@ -1,5 +1,5 @@
 <!--
-  Added inside <ossec_config> in the Wazuh agent's ossec.conf on win11-lab:
+  Added inside <ossec_config> in the Wazuh agent's ossec.conf on win-lab (VM name win11-lab):
   C:\Program Files (x86)\ossec-agent\ossec.conf
   The default agent config already reads the Security, System and Application channels.
   Restart the agent afterwards:  Restart-Service WazuhSvc

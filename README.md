@@ -95,7 +95,7 @@ All machines run in VMware Workstation on an isolated network.
 
 Changes from the default configuration:
 
-- Sysmon installed with `<config name + link>`
+- Sysmon installed with [SwiftOnSecurity sysmon-config](https://github.com/SwiftOnSecurity/sysmon-config)
 - Sysmon and PowerShell/Operational channels added to the agent: [`config/agent-localfile.xml`](config/agent-localfile.xml)
 - Script Block Logging enabled through the registry: [`config/enable-logging.ps1`](config/enable-logging.ps1)
 - `Other Object Access Events` audit policy enabled to log scheduled task creation (4698)

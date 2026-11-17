@@ -27,6 +27,7 @@ v1 (3 techniques) completed on Nov 16, 2026. v2 adds two techniques, custom rule
 | Adversary emulation | Atomic Red Team and NetExec: [write-ups](docs/techniques/) |
 | Alert triage | Interpreting rule IDs and severity levels |
 | Log pipeline troubleshooting | [Things I learned](#things-i-learned-along-the-way) |
+| Detection engineering | Custom Wazuh rules with before/after and negative tests: [Custom rules](#custom-rules) |
 | Technical documentation | This README and one write-up per technique |
 
 ## Detection results
@@ -44,6 +45,18 @@ Full write-ups with screenshots:
 [T1059.001](docs/techniques/t1059-001-powershell-encoded.md),
 [T1053.005](docs/techniques/t1053-005-scheduled-task.md),
 [T1110](docs/techniques/t1110-brute-force.md)
+
+## Custom rules
+
+Rules I wrote for gaps in the default ruleset: [rules/wazuh/](rules/wazuh/)
+
+| Gap | Rule ID / level | What it matches | Result |
+|---|---|---|---|
+| Scheduled task persistence ([T1053.005](docs/techniques/t1053-005-scheduled-task.md#custom-rule-v2)) | 100010 / 8 | New task that runs cmd or PowerShell at logon or boot | Atomic task raised from 60228 / 4 to 100010 / 8 |
+| | 100011 / 12 | Same, running as SYSTEM | Atomic task raised from 60228 / 4 to 100011 / 12 |
+
+Each rule was tested by re-running the same attack, and against a benign task
+(`notepad.exe` at logon) that should not match. It did not.
 
 ## Things I learned along the way
 
